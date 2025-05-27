@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="616b8a5d-7b4c-4b79-853f-ecebf0f32bd1">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT * FROM estudiante]]>
+	</queryString>
+	<field name="codiEstdWeb" class="java.lang.Integer">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="ndniEstdWeb" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="appaEstdWeb" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="apmaEstdWeb" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="nombEstdWeb" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="fechNaciEstdWeb" class="java.sql.Date">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="logiEstd" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="passEstd" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="61" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="100" height="20" uuid="6b388059-51d6-4f10-b0ab-0f3cb366eaf9"/>
+				<text><![CDATA[codiEstdWeb]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="0" width="100" height="20" uuid="1a9c7e61-f63e-4756-9940-56cc39e8ecc4"/>
+				<text><![CDATA[ndniEstdWeb]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="200" y="0" width="100" height="20" uuid="a4cbd7f7-de43-4cd8-86ef-39582f6542ac"/>
+				<text><![CDATA[appaEstdWeb]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="300" y="0" width="100" height="20" uuid="dd37bc75-2b90-4700-8000-fcbca86d32e7"/>
+				<text><![CDATA[apmaEstdWeb]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="400" y="0" width="100" height="20" uuid="4d2e055d-7764-4910-b650-66f0c95e54ff"/>
+				<text><![CDATA[nombEstdWeb]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="500" y="0" width="100" height="20" uuid="9476955f-67aa-49e1-9801-e27ed49222c7"/>
+				<text><![CDATA[fechNaciEstdWeb]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="600" y="0" width="100" height="20" uuid="3bdd5fd4-44c0-49ae-a048-7fe426d093ba"/>
+				<text><![CDATA[logiEstd]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="700" y="0" width="100" height="20" uuid="f603fbfe-fd98-454e-b0aa-f4ded010b938"/>
+				<text><![CDATA[passEstd]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="125" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="100" height="20" uuid="5f0b65be-5a89-4b4a-9e1c-24b77ef3cd72"/>
+				<textFieldExpression><![CDATA[$F{codiEstdWeb}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="100" y="0" width="100" height="20" uuid="269e24ff-9715-4331-b58c-21f57693607e"/>
+				<textFieldExpression><![CDATA[$F{ndniEstdWeb}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="200" y="0" width="100" height="20" uuid="b029f9b5-1daf-45de-a75b-8c03ba6ba56d"/>
+				<textFieldExpression><![CDATA[$F{appaEstdWeb}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="300" y="0" width="100" height="20" uuid="9917a3c4-a941-4c06-a2ce-a458c43b0ebb"/>
+				<textFieldExpression><![CDATA[$F{apmaEstdWeb}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="400" y="0" width="100" height="20" uuid="cca39e66-2a98-4062-9538-dc42a1cfc156"/>
+				<textFieldExpression><![CDATA[$F{nombEstdWeb}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="500" y="0" width="100" height="20" uuid="fa56d422-6c54-442a-b6bb-c1c160ccbec8"/>
+				<textFieldExpression><![CDATA[$F{fechNaciEstdWeb}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="600" y="0" width="100" height="20" uuid="8bee2d59-9583-486d-929d-09566a18712b"/>
+				<textFieldExpression><![CDATA[$F{logiEstd}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="700" y="0" width="100" height="20" uuid="4f7bf274-3fa7-4f56-abaa-e49189fdf6af"/>
+				<textFieldExpression><![CDATA[$F{passEstd}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="71" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="26" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

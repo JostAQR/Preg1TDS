@@ -118,6 +118,9 @@
                         <!-- ENCABEZADO DE LA PÁGINA -->
                         <div class="d-sm-flex align-items-center justify-content-between mb-4">
                             <h1 class="h3 mb-0 text-gray-800">GESTIÓN DE ESTUDIANTES</h1>
+                            <a class="btn btn-success" href="ReporteEstudianteServlet" target="_blank">
+                                <i class="fas fa-file-pdf"></i> Exportar Reporte
+                            </a>
                             <button class="btn btn-primary" data-toggle="modal" data-target="#estudianteModal" onclick="limpiarFormulario()">
                                 <i class="fas fa-plus fa-sm"></i> Nuevo Estudiante
                             </button>
@@ -297,387 +300,388 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap4.min.js"></script>
 
         <script>
-            // VARIABLES GLOBALES
-            let tabla;
-            let idEstudianteEliminar = 0;
-            let modoEdicion = false;
-            let usuarioActual = null;
-            let estudianteLogueado = null;
-            let estudiantes = []; // ARRAY PARA ALMACENAR ESTUDIANTES
+                            // VARIABLES GLOBALES
+                            let tabla;
+                            let idEstudianteEliminar = 0;
+                            let modoEdicion = false;
+                            let usuarioActual = null;
+                            let estudianteLogueado = null;
+                            let estudiantes = []; // ARRAY PARA ALMACENAR ESTUDIANTES
 
-            // INICIALIZAR PÁGINA CUANDO SE CARGA
-            $(document).ready(function () {
-                // VERIFICAR SESIÓN ACTIVA Y OBTENER USUARIO
-                if (!verificarSesion()) {
-                    return; // DETENER EJECUCIÓN SI NO HAY SESIÓN
-                }
+                            // INICIALIZAR PÁGINA CUANDO SE CARGA
+                            $(document).ready(function () {
+                                // VERIFICAR SESIÓN ACTIVA Y OBTENER USUARIO
+                                if (!verificarSesion()) {
+                                    return; // DETENER EJECUCIÓN SI NO HAY SESIÓN
+                                }
 
-                // INICIALIZAR DATATABLE CON CONFIGURACIÓN EN ESPAÑOL
-                tabla = $('#dataTable').DataTable({
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
-                    },
-                    "responsive": true,
-                    "order": [[0, "desc"]] // ORDENAR POR ID DESCENDENTE
-                });
+                                // INICIALIZAR DATATABLE CON CONFIGURACIÓN EN ESPAÑOL
+                                tabla = $('#dataTable').DataTable({
+                                    "language": {
+                                        "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
+                                    },
+                                    "responsive": true,
+                                    "order": [[0, "desc"]] // ORDENAR POR ID DESCENDENTE
+                                });
 
-                // CARGAR ESTUDIANTES AL INICIAR LA PÁGINA
-                cargarEstudiantes();
+                                // CARGAR ESTUDIANTES AL INICIAR LA PÁGINA
+                                cargarEstudiantes();
 
-                // VALIDAR QUE EL DNI SOLO CONTENGA NÚMEROS
-                $('#dni').on('input', function () {
-                    this.value = this.value.replace(/[^0-9]/g, '');
-                    if (this.value.length > 8) {
-                        this.value = this.value.slice(0, 8);
-                    }
-                });
+                                // VALIDAR QUE EL DNI SOLO CONTENGA NÚMEROS
+                                $('#dni').on('input', function () {
+                                    this.value = this.value.replace(/[^0-9]/g, '');
+                                    if (this.value.length > 8) {
+                                        this.value = this.value.slice(0, 8);
+                                    }
+                                });
 
-                // CONVERTIR NOMBRES A MAYÚSCULAS
-                $('#apPaterno, #apMaterno, #nombre').on('input', function () {
-                    this.value = this.value.toUpperCase();
-                });
-            });
+                                // CONVERTIR NOMBRES A MAYÚSCULAS
+                                $('#apPaterno, #apMaterno, #nombre').on('input', function () {
+                                    this.value = this.value.toUpperCase();
+                                });
+                            });
 
-            // FUNCIÓN PARA VERIFICAR SESIÓN ACTIVA
-            function verificarSesion() {
-                try {
-                    console.log('Verificando sesión...');
+                            // FUNCIÓN PARA VERIFICAR SESIÓN ACTIVA
+                            function verificarSesion() {
+                                try {
+                                    console.log('Verificando sesión...');
 
-                    let estudianteSession = null;
-                    let isLoggedIn = false;
+                                    let estudianteSession = null;
+                                    let isLoggedIn = false;
 
-                    // INTENTAR OBTENER DATOS DE SESSIONSTORAGE
-                    if (typeof Storage !== 'undefined' && sessionStorage) {
-                        estudianteSession = sessionStorage.getItem('estudianteLogueado');
-                        isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-                    }
+                                    // INTENTAR OBTENER DATOS DE SESSIONSTORAGE
+                                    if (typeof Storage !== 'undefined' && sessionStorage) {
+                                        estudianteSession = sessionStorage.getItem('estudianteLogueado');
+                                        isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+                                    }
 
-                    if (isLoggedIn && estudianteSession) {
-                        estudianteLogueado = JSON.parse(estudianteSession);
-                        usuarioActual = estudianteLogueado.logiEstd || 'Usuario';
+                                    if (isLoggedIn && estudianteSession) {
+                                        estudianteLogueado = JSON.parse(estudianteSession);
+                                        usuarioActual = estudianteLogueado.logiEstd || 'Usuario';
 
-                        // ACTUALIZAR INTERFAZ CON DATOS DEL USUARIO
-                        $('#usuarioLogueado').text(usuarioActual);
+                                        // ACTUALIZAR INTERFAZ CON DATOS DEL USUARIO
+                                        $('#usuarioLogueado').text(usuarioActual);
 
-                        // IMPORTANTE: ACTUALIZAR EL CAMPO DE LOGIN EN EL MODAL DE CAMBIO DE CONTRASEÑA
-                        $('#loginActual').val(usuarioActual);
+                                        // IMPORTANTE: ACTUALIZAR EL CAMPO DE LOGIN EN EL MODAL DE CAMBIO DE CONTRASEÑA
+                                        $('#loginActual').val(usuarioActual);
 
-                        console.log('USUARIO LOGUEADO:', usuarioActual);
-                        return true;
-                    } else {
-                        // NO HAY SESIÓN VÁLIDA, REDIRIGIR AL LOGIN
-                        alert('DEBE INICIAR SESIÓN PARA ACCEDER A ESTA PÁGINA.');
-                        window.location.href = 'index.html';
-                        return false;
-                    }
-                } catch (error) {
-                    console.error('ERROR AL VERIFICAR SESIÓN:', error);
-                    alert('SESIÓN INVÁLIDA. DEBE INICIAR SESIÓN NUEVAMENTE.');
-                    window.location.href = 'index.html';
-                    return false;
-                }
-            }
+                                        console.log('USUARIO LOGUEADO:', usuarioActual);
+                                        return true;
+                                    } else {
+                                        // NO HAY SESIÓN VÁLIDA, REDIRIGIR AL LOGIN
+                                        alert('DEBE INICIAR SESIÓN PARA ACCEDER A ESTA PÁGINA.');
+                                        window.location.href = 'index.html';
+                                        return false;
+                                    }
+                                } catch (error) {
+                                    console.error('ERROR AL VERIFICAR SESIÓN:', error);
+                                    alert('SESIÓN INVÁLIDA. DEBE INICIAR SESIÓN NUEVAMENTE.');
+                                    window.location.href = 'index.html';
+                                    return false;
+                                }
+                            }
 
-            // FUNCIÓN PARA CARGAR LISTA DE ESTUDIANTES DESDE EL SERVIDOR
-            function cargarEstudiantes() {
-                console.log('CARGANDO ESTUDIANTES...');
+                            // FUNCIÓN PARA CARGAR LISTA DE ESTUDIANTES DESDE EL SERVIDOR
+                            function cargarEstudiantes() {
+                                console.log('CARGANDO ESTUDIANTES...');
 
-                fetch('estudiante', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => {
-                    console.log('RESPUESTA HTTP STATUS:', response.status);
-                    if (!response.ok) {
-                        throw new Error('ERROR HTTP: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('DATOS RECIBIDOS:', data);
+                                fetch('estudiante', {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                        .then(response => {
+                                            console.log('RESPUESTA HTTP STATUS:', response.status);
+                                            if (!response.ok) {
+                                                throw new Error('ERROR HTTP: ' + response.status);
+                                            }
+                                            return response.json();
+                                        })
+                                        .then(data => {
+                                            console.log('DATOS RECIBIDOS:', data);
 
-                    // VERIFICAR SI LA RESPUESTA TIENE LA ESTRUCTURA ESPERADA
-                    if (data.success && Array.isArray(data.data)) {
-                        estudiantes = data.data;
-                        console.log('TOTAL ESTUDIANTES ENCONTRADOS:', estudiantes.length);
-                        renderEstudiantesTable();
-                    } else if (Array.isArray(data)) {
-                        // COMPATIBILIDAD CON RESPUESTA DIRECTA COMO ARRAY
-                        estudiantes = data;
-                        console.log('TOTAL ESTUDIANTES ENCONTRADOS:', estudiantes.length);
-                        renderEstudiantesTable();
-                    } else {
-                        console.warn('FORMATO DE DATOS INCORRECTO:', data);
-                        alert('ERROR: FORMATO DE DATOS INCORRECTO');
-                    }
-                })
-                .catch(error => {
-                    console.error('ERROR AL CARGAR ESTUDIANTES:', error);
-                    alert('ERROR AL CARGAR LOS ESTUDIANTES: ' + error.message);
-                });
-            }
+                                            // VERIFICAR SI LA RESPUESTA TIENE LA ESTRUCTURA ESPERADA
+                                            if (data.success && Array.isArray(data.data)) {
+                                                estudiantes = data.data;
+                                                console.log('TOTAL ESTUDIANTES ENCONTRADOS:', estudiantes.length);
+                                                renderEstudiantesTable();
+                                            } else if (Array.isArray(data)) {
+                                                // COMPATIBILIDAD CON RESPUESTA DIRECTA COMO ARRAY
+                                                estudiantes = data;
+                                                console.log('TOTAL ESTUDIANTES ENCONTRADOS:', estudiantes.length);
+                                                renderEstudiantesTable();
+                                            } else {
+                                                console.warn('FORMATO DE DATOS INCORRECTO:', data);
+                                                alert('ERROR: FORMATO DE DATOS INCORRECTO');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('ERROR AL CARGAR ESTUDIANTES:', error);
+                                            alert('ERROR AL CARGAR LOS ESTUDIANTES: ' + error.message);
+                                        });
+                            }
 
-            // FUNCIÓN PARA RENDERIZAR LA TABLA DE ESTUDIANTES
-            function renderEstudiantesTable() {
-                // LIMPIAR TABLA ANTES DE CARGAR NUEVOS DATOS
-                tabla.clear();
+                            // FUNCIÓN PARA RENDERIZAR LA TABLA DE ESTUDIANTES
+                            function renderEstudiantesTable() {
+                                // LIMPIAR TABLA ANTES DE CARGAR NUEVOS DATOS
+                                tabla.clear();
 
-                if (estudiantes.length === 0) {
-                    tabla.row.add([
-                        'No hay estudiantes registrados',
-                        '', '', '', '', '', '', ''
-                    ]);
-                    tabla.draw();
-                    return;
-                }
+                                if (estudiantes.length === 0) {
+                                    tabla.row.add([
+                                        'No hay estudiantes registrados',
+                                        '', '', '', '', '', '', ''
+                                    ]);
+                                    tabla.draw();
+                                    return;
+                                }
 
-                estudiantes.forEach(estudiante => {
-                    // FORMATEAR FECHA DE NACIMIENTO
-                    const fechaFormateada = formatearFecha(estudiante.fechNaciEstdWeb);
+                                estudiantes.forEach(estudiante => {
+                                    // FORMATEAR FECHA DE NACIMIENTO
+                                    const fechaFormateada = formatearFecha(estudiante.fechNaciEstdWeb);
 
-                    // ESCAPAR DATOS PARA EVITAR PROBLEMAS CON JSON EN ONCLICK
-                    const estudianteEscapado = {
-                        codiEstdWeb: estudiante.codiEstdWeb,
-                        ndniEstdWeb: estudiante.ndniEstdWeb,
-                        appaEstdWeb: estudiante.appaEstdWeb,
-                        apmaEstdWeb: estudiante.apmaEstdWeb,
-                        nombEstdWeb: estudiante.nombEstdWeb,
-                        fechNaciEstdWeb: estudiante.fechNaciEstdWeb,
-                        logiEstd: estudiante.logiEstd,
-                        passEstd: estudiante.passEstd || ''
-                    };
+                                    // ESCAPAR DATOS PARA EVITAR PROBLEMAS CON JSON EN ONCLICK
+                                    const estudianteEscapado = {
+                                        codiEstdWeb: estudiante.codiEstdWeb,
+                                        ndniEstdWeb: estudiante.ndniEstdWeb,
+                                        appaEstdWeb: estudiante.appaEstdWeb,
+                                        apmaEstdWeb: estudiante.apmaEstdWeb,
+                                        nombEstdWeb: estudiante.nombEstdWeb,
+                                        fechNaciEstdWeb: estudiante.fechNaciEstdWeb,
+                                        logiEstd: estudiante.logiEstd,
+                                        passEstd: estudiante.passEstd || ''
+                                    };
 
-                    // CREAR NOMBRE COMPLETO PARA MODAL DE ELIMINACIÓN
-                    const nombreCompleto = `${estudiante.nombEstdWeb || ''} ${estudiante.appaEstdWeb || ''} ${estudiante.apmaEstdWeb || ''}`.trim();
+                                    // CREAR NOMBRE COMPLETO PARA MODAL DE ELIMINACIÓN
+                                    const nombreCompleto = `${estudiante.nombEstdWeb || ''} ${estudiante.appaEstdWeb || ''} ${estudiante.apmaEstdWeb || ''}`.trim();
 
-                    tabla.row.add([
-                        estudiante.codiEstdWeb, // ID DEL ESTUDIANTE
-                        estudiante.ndniEstdWeb || '', // DNI
-                        estudiante.appaEstdWeb || '', // APELLIDO PATERNO
-                        estudiante.apmaEstdWeb || '', // APELLIDO MATERNO
-                        estudiante.nombEstdWeb || '', // NOMBRE
-                        fechaFormateada, // FECHA DE NACIMIENTO
-                        estudiante.logiEstd || '', // LOGIN
-                        // BOTONES DE ACCIÓN
-                        `<button class="btn btn-sm btn-warning me-1" onclick="editarEstudiante(${estudiante.codiEstdWeb})">
+                                    tabla.row.add([
+                                        estudiante.codiEstdWeb, // ID DEL ESTUDIANTE
+                                        estudiante.ndniEstdWeb || '', // DNI
+                                        estudiante.appaEstdWeb || '', // APELLIDO PATERNO
+                                        estudiante.apmaEstdWeb || '', // APELLIDO MATERNO
+                                        estudiante.nombEstdWeb || '', // NOMBRE
+                                        fechaFormateada, // FECHA DE NACIMIENTO
+                                        estudiante.logiEstd || '', // LOGIN
+                                        // BOTONES DE ACCIÓN
+                                        `<button class="btn btn-sm btn-warning me-1" onclick="editarEstudiante(${estudiante.codiEstdWeb})">
                             <i class="fas fa-edit"></i> Editar
                         </button>
                         <button class="btn btn-sm btn-danger" onclick="eliminarEstudiante(${estudiante.codiEstdWeb}, '${nombreCompleto.replace(/'/g, "\\'")}')">
                             <i class="fas fa-trash"></i> Eliminar
                         </button>`
-                    ]);
-                });
+                                    ]);
+                                });
 
-                tabla.draw();
-                console.log('TABLA RENDERIZADA CORRECTAMENTE');
-            }
+                                tabla.draw();
+                                console.log('TABLA RENDERIZADA CORRECTAMENTE');
+                            }
 
-            // FUNCIÓN PARA FORMATEAR FECHA
-            function formatearFecha(fecha) {
-                if (!fecha) return 'N/A';
+                            // FUNCIÓN PARA FORMATEAR FECHA
+                            function formatearFecha(fecha) {
+                                if (!fecha)
+                                    return 'N/A';
 
-                try {
-                    // VERIFICAR SI ES UNA FECHA VÁLIDA
-                    const fechaObj = new Date(fecha);
-                    if (isNaN(fechaObj.getTime())) {
-                        return fecha; // DEVOLVER FECHA ORIGINAL SI NO ES VÁLIDA
-                    }
+                                try {
+                                    // VERIFICAR SI ES UNA FECHA VÁLIDA
+                                    const fechaObj = new Date(fecha);
+                                    if (isNaN(fechaObj.getTime())) {
+                                        return fecha; // DEVOLVER FECHA ORIGINAL SI NO ES VÁLIDA
+                                    }
 
-                    // FORMATEAR FECHA A DD/MM/YYYY
-                    const dia = fechaObj.getDate().toString().padStart(2, '0');
-                    const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
-                    const año = fechaObj.getFullYear();
+                                    // FORMATEAR FECHA A DD/MM/YYYY
+                                    const dia = fechaObj.getDate().toString().padStart(2, '0');
+                                    const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
+                                    const año = fechaObj.getFullYear();
 
-                    return `${dia}/${mes}/${año}`;
-                } catch (error) {
-                    console.error('ERROR AL FORMATEAR FECHA:', error);
-                    return fecha;
-                }
-            }
+                                    return `${dia}/${mes}/${año}`;
+                                } catch (error) {
+                                    console.error('ERROR AL FORMATEAR FECHA:', error);
+                                    return fecha;
+                                }
+                            }
 
-            // FUNCIÓN PARA LIMPIAR EL FORMULARIO
-            function limpiarFormulario() {
-                console.log('LIMPIANDO FORMULARIO...');
+                            // FUNCIÓN PARA LIMPIAR EL FORMULARIO
+                            function limpiarFormulario() {
+                                console.log('LIMPIANDO FORMULARIO...');
 
-                // RESETEAR EL FORMULARIO
-                document.getElementById('estudianteForm').reset();
-                // LIMPIAR CAMPO OCULTO DEL ID
-                document.getElementById('estudianteId').value = '';
-                // ESTABLECER MODO CREACIÓN
-                modoEdicion = false;
-                // CAMBIAR TÍTULO DEL MODAL
-                document.getElementById('estudianteModalLabel').innerHTML = 'Nuevo Estudiante';
+                                // RESETEAR EL FORMULARIO
+                                document.getElementById('estudianteForm').reset();
+                                // LIMPIAR CAMPO OCULTO DEL ID
+                                document.getElementById('estudianteId').value = '';
+                                // ESTABLECER MODO CREACIÓN
+                                modoEdicion = false;
+                                // CAMBIAR TÍTULO DEL MODAL
+                                document.getElementById('estudianteModalLabel').innerHTML = 'Nuevo Estudiante';
 
-                console.log('FORMULARIO LIMPIADO, MODO EDICIÓN:', modoEdicion);
-            }
+                                console.log('FORMULARIO LIMPIADO, MODO EDICIÓN:', modoEdicion);
+                            }
 
-            // FUNCIÓN PARA GUARDAR ESTUDIANTE
-            function guardarEstudiante() {
-                console.log('INICIANDO GUARDADO DE ESTUDIANTE...');
-                console.log('MODO EDICIÓN:', modoEdicion);
+                            // FUNCIÓN PARA GUARDAR ESTUDIANTE
+                            function guardarEstudiante() {
+                                console.log('INICIANDO GUARDADO DE ESTUDIANTE...');
+                                console.log('MODO EDICIÓN:', modoEdicion);
 
-                // OBTENER EL FORMULARIO
-                const form = document.getElementById('estudianteForm');
+                                // OBTENER EL FORMULARIO
+                                const form = document.getElementById('estudianteForm');
 
-                // VALIDAR QUE EL FORMULARIO SEA VÁLIDO
-                if (!form.checkValidity()) {
-                    form.reportValidity();
-                    return;
-                }
+                                // VALIDAR QUE EL FORMULARIO SEA VÁLIDO
+                                if (!form.checkValidity()) {
+                                    form.reportValidity();
+                                    return;
+                                }
 
-                // OBTENER DATOS DEL FORMULARIO
-                const formData = {
-                    ndniEstdWeb: document.getElementById('dni').value.trim(),
-                    appaEstdWeb: document.getElementById('apPaterno').value.trim().toUpperCase(),
-                    apmaEstdWeb: document.getElementById('apMaterno').value.trim().toUpperCase(),
-                    nombEstdWeb: document.getElementById('nombre').value.trim().toUpperCase(),
-                    fechNaciEstdWeb: document.getElementById('fechaNac').value,
-                    logiEstd: document.getElementById('login').value.trim(),
-                    passEstd: document.getElementById('password').value
-                };
+                                // OBTENER DATOS DEL FORMULARIO
+                                const formData = {
+                                    ndniEstdWeb: document.getElementById('dni').value.trim(),
+                                    appaEstdWeb: document.getElementById('apPaterno').value.trim().toUpperCase(),
+                                    apmaEstdWeb: document.getElementById('apMaterno').value.trim().toUpperCase(),
+                                    nombEstdWeb: document.getElementById('nombre').value.trim().toUpperCase(),
+                                    fechNaciEstdWeb: document.getElementById('fechaNac').value,
+                                    logiEstd: document.getElementById('login').value.trim(),
+                                    passEstd: document.getElementById('password').value
+                                };
 
-                // AGREGAR ID SI ESTÁ EN MODO EDICIÓN
-                if (modoEdicion) {
-                    formData.codiEstdWeb = parseInt(document.getElementById('estudianteId').value);
-                }
+                                // AGREGAR ID SI ESTÁ EN MODO EDICIÓN
+                                if (modoEdicion) {
+                                    formData.codiEstdWeb = parseInt(document.getElementById('estudianteId').value);
+                                }
 
-                // DEBUG: MOSTRAR DATOS QUE SE VAN A ENVIAR
-                console.log('DATOS A ENVIAR:', formData);
+                                // DEBUG: MOSTRAR DATOS QUE SE VAN A ENVIAR
+                                console.log('DATOS A ENVIAR:', formData);
 
-                // CONFIGURAR MÉTODO Y URL
-                const metodo = modoEdicion ? 'PUT' : 'POST';
-                console.log('MÉTODO HTTP:', metodo);
+                                // CONFIGURAR MÉTODO Y URL
+                                const metodo = modoEdicion ? 'PUT' : 'POST';
+                                console.log('MÉTODO HTTP:', metodo);
 
-                // ENVIAR DATOS AL SERVIDOR
-                fetch('estudiante', {
-                    method: metodo,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => {
-                    console.log('RESPUESTA DEL SERVIDOR - STATUS:', response.status);
-                    if (!response.ok) {
-                        throw new Error('ERROR HTTP: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('DATOS PARSEADOS:', data);
+                                // ENVIAR DATOS AL SERVIDOR
+                                fetch('estudiante', {
+                                    method: metodo,
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(formData)
+                                })
+                                        .then(response => {
+                                            console.log('RESPUESTA DEL SERVIDOR - STATUS:', response.status);
+                                            if (!response.ok) {
+                                                throw new Error('ERROR HTTP: ' + response.status);
+                                            }
+                                            return response.json();
+                                        })
+                                        .then(data => {
+                                            console.log('DATOS PARSEADOS:', data);
 
-                    if (data.success) {
-                        alert(data.message);
-                        // CERRAR MODAL
-                        $('#estudianteModal').modal('hide');
-                        // RECARGAR LISTA
-                        cargarEstudiantes();
-                    } else {
-                        alert('ERROR: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('ERROR AL GUARDAR ESTUDIANTE:', error);
-                    alert('ERROR AL GUARDAR EL ESTUDIANTE: ' + error.message);
-                });
-            }
+                                            if (data.success) {
+                                                alert(data.message);
+                                                // CERRAR MODAL
+                                                $('#estudianteModal').modal('hide');
+                                                // RECARGAR LISTA
+                                                cargarEstudiantes();
+                                            } else {
+                                                alert('ERROR: ' + data.message);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('ERROR AL GUARDAR ESTUDIANTE:', error);
+                                            alert('ERROR AL GUARDAR EL ESTUDIANTE: ' + error.message);
+                                        });
+                            }
 
-            // FUNCIÓN PARA EDITAR ESTUDIANTE
-            function editarEstudiante(id) {
-                console.log('EDITANDO ESTUDIANTE CON ID:', id);
+                            // FUNCIÓN PARA EDITAR ESTUDIANTE
+                            function editarEstudiante(id) {
+                                console.log('EDITANDO ESTUDIANTE CON ID:', id);
 
-                // BUSCAR EL ESTUDIANTE EN EL ARRAY LOCAL
-                const estudiante = estudiantes.find(e => e.codiEstdWeb === id);
+                                // BUSCAR EL ESTUDIANTE EN EL ARRAY LOCAL
+                                const estudiante = estudiantes.find(e => e.codiEstdWeb === id);
 
-                console.log('ESTUDIANTE ENCONTRADO:', estudiante);
+                                console.log('ESTUDIANTE ENCONTRADO:', estudiante);
 
-                if (estudiante) {
-                    // LLENAR EL FORMULARIO
-                    document.getElementById('estudianteId').value = estudiante.codiEstdWeb || '';
-                    document.getElementById('dni').value = estudiante.ndniEstdWeb || '';
-                    document.getElementById('apPaterno').value = estudiante.appaEstdWeb || '';
-                    document.getElementById('apMaterno').value = estudiante.apmaEstdWeb || '';
-                    document.getElementById('nombre').value = estudiante.nombEstdWeb || '';
-                    document.getElementById('fechaNac').value = estudiante.fechNaciEstdWeb || '';
-                    document.getElementById('login').value = estudiante.logiEstd || '';
-                    document.getElementById('password').value = estudiante.passEstd || '';
+                                if (estudiante) {
+                                    // LLENAR EL FORMULARIO
+                                    document.getElementById('estudianteId').value = estudiante.codiEstdWeb || '';
+                                    document.getElementById('dni').value = estudiante.ndniEstdWeb || '';
+                                    document.getElementById('apPaterno').value = estudiante.appaEstdWeb || '';
+                                    document.getElementById('apMaterno').value = estudiante.apmaEstdWeb || '';
+                                    document.getElementById('nombre').value = estudiante.nombEstdWeb || '';
+                                    document.getElementById('fechaNac').value = estudiante.fechNaciEstdWeb || '';
+                                    document.getElementById('login').value = estudiante.logiEstd || '';
+                                    document.getElementById('password').value = estudiante.passEstd || '';
 
-                    // ESTABLECER MODO EDICIÓN
-                    modoEdicion = true;
-                    // CAMBIAR TÍTULO DEL MODAL
-                    document.getElementById('estudianteModalLabel').innerHTML = 'Editar Estudiante';
-                    // MOSTRAR MODAL
-                    $('#estudianteModal').modal('show');
+                                    // ESTABLECER MODO EDICIÓN
+                                    modoEdicion = true;
+                                    // CAMBIAR TÍTULO DEL MODAL
+                                    document.getElementById('estudianteModalLabel').innerHTML = 'Editar Estudiante';
+                                    // MOSTRAR MODAL
+                                    $('#estudianteModal').modal('show');
 
-                    console.log('FORMULARIO CARGADO PARA EDICIÓN');
-                } else {
-                    alert('ESTUDIANTE NO ENCONTRADO');
-                }
-            }
+                                    console.log('FORMULARIO CARGADO PARA EDICIÓN');
+                                } else {
+                                    alert('ESTUDIANTE NO ENCONTRADO');
+                                }
+                            }
 
-            // FUNCIÓN PARA PREPARAR ELIMINACIÓN
-            function eliminarEstudiante(id, nombre) {
-                console.log('PREPARANDO ELIMINACIÓN DE ESTUDIANTE ID:', id, 'NOMBRE:', nombre);
+                            // FUNCIÓN PARA PREPARAR ELIMINACIÓN
+                            function eliminarEstudiante(id, nombre) {
+                                console.log('PREPARANDO ELIMINACIÓN DE ESTUDIANTE ID:', id, 'NOMBRE:', nombre);
 
-                // GUARDAR ID A ELIMINAR
-                idEstudianteEliminar = id;
-                // MOSTRAR NOMBRE EN MODAL
-                document.getElementById('estudianteEliminar').innerHTML = nombre;
-                // MOSTRAR MODAL
-                $('#eliminarModal').modal('show');
-            }
+                                // GUARDAR ID A ELIMINAR
+                                idEstudianteEliminar = id;
+                                // MOSTRAR NOMBRE EN MODAL
+                                document.getElementById('estudianteEliminar').innerHTML = nombre;
+                                // MOSTRAR MODAL
+                                $('#eliminarModal').modal('show');
+                            }
 
-            // FUNCIÓN PARA CONFIRMAR ELIMINACIÓN
-            function confirmarEliminar() {
-                console.log('CONFIRMANDO ELIMINACIÓN DE ESTUDIANTE ID:', idEstudianteEliminar);
+                            // FUNCIÓN PARA CONFIRMAR ELIMINACIÓN
+                            function confirmarEliminar() {
+                                console.log('CONFIRMANDO ELIMINACIÓN DE ESTUDIANTE ID:', idEstudianteEliminar);
 
-                // ENVIAR PETICIÓN DELETE
-                fetch(`estudiante?codiEstdWeb=${idEstudianteEliminar}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => {
-                    console.log('RESPUESTA ELIMINACIÓN - STATUS:', response.status);
-                    if (!response.ok) {
-                        throw new Error('ERROR HTTP: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('RESPUESTA ELIMINACIÓN - DATA:', data);
+                                // ENVIAR PETICIÓN DELETE
+                                fetch(`estudiante?codiEstdWeb=${idEstudianteEliminar}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                        .then(response => {
+                                            console.log('RESPUESTA ELIMINACIÓN - STATUS:', response.status);
+                                            if (!response.ok) {
+                                                throw new Error('ERROR HTTP: ' + response.status);
+                                            }
+                                            return response.json();
+                                        })
+                                        .then(data => {
+                                            console.log('RESPUESTA ELIMINACIÓN - DATA:', data);
 
-                    if (data.success) {
-                        alert(data.message);
-                        // CERRAR MODAL
-                        $('#eliminarModal').modal('hide');
-                        // RECARGAR LISTA
-                        cargarEstudiantes();
-                    } else {
-                        alert('ERROR: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('ERROR AL ELIMINAR ESTUDIANTE:', error);
-                    alert('ERROR AL ELIMINAR ESTUDIANTE: ' + error.message);
-                });
-            }
+                                            if (data.success) {
+                                                alert(data.message);
+                                                // CERRAR MODAL
+                                                $('#eliminarModal').modal('hide');
+                                                // RECARGAR LISTA
+                                                cargarEstudiantes();
+                                            } else {
+                                                alert('ERROR: ' + data.message);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('ERROR AL ELIMINAR ESTUDIANTE:', error);
+                                            alert('ERROR AL ELIMINAR ESTUDIANTE: ' + error.message);
+                                        });
+                            }
 
-            // FUNCIÓN PARA CERRAR SESIÓN
-            function cerrarSesion() {
-                // LIMPIAR DATOS DE SESIÓN
-                if (typeof Storage !== 'undefined' && sessionStorage) {
-                    sessionStorage.removeItem('estudianteLogueado');
-                    sessionStorage.removeItem('isLoggedIn');
-                }
+                            // FUNCIÓN PARA CERRAR SESIÓN
+                            function cerrarSesion() {
+                                // LIMPIAR DATOS DE SESIÓN
+                                if (typeof Storage !== 'undefined' && sessionStorage) {
+                                    sessionStorage.removeItem('estudianteLogueado');
+                                    sessionStorage.removeItem('isLoggedIn');
+                                }
 
-                // CERRAR MODAL Y REDIRIGIR
-                $('#logoutModal').modal('hide');
-                window.location.href = 'index.html';
-            }
+                                // CERRAR MODAL Y REDIRIGIR
+                                $('#logoutModal').modal('hide');
+                                window.location.href = 'index.html';
+                            }
         </script>
     </body>
 
